@@ -1,0 +1,58 @@
+on: [push, pull_request]
+name: ci
+jobs:
+  ut:
+    name: unittest
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test_feature:
+          - ""
+          - "anyhow"
+
+    steps:
+      - name: Setup | Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup | Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          components: rustfmt, clippy
+
+      - name: Unit Tests, with and without defensive store
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --features "${{ matrix.test_feature }}"
+        env:
+          RUST_LOG: debug
+          RUST_BACKTRACE: full
+
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --all-features
+
+
+      - name: Format
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+
+      - name: Clippy
+        uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --all-targets -- -D warnings -A clippy::bool-assert-comparison
+
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          path: |
+            _log/
