@@ -10,7 +10,7 @@ use serde::Serialize;
 ///
 /// It is can be used to convert other `Error` into a serializable Error for transmission,
 /// with most necessary info kept.
-#[derive(Serialize, Deserialize, Clone, PartialEq, Default)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 pub struct AnyError {
     typ: Option<String>,
     msg: String,

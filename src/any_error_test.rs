@@ -6,6 +6,20 @@ use anyhow::Context;
 use crate::AnyError;
 
 #[test]
+fn test_any_error_eq() -> anyhow::Result<()> {
+    let fmt_err = fmt::Error {};
+
+    let ae1 = AnyError::new(&fmt_err);
+
+    let ae2 = AnyError::new(&fmt_err);
+
+    // derive(Eq)
+    let _ = ae1 == ae2;
+
+    Ok(())
+}
+
+#[test]
 fn test_any_error() -> anyhow::Result<()> {
     // build from std Error
 
