@@ -62,6 +62,16 @@ impl From<anyhow::Error> for AnyError {
 }
 
 impl AnyError {
+    /// Create an ad-hoc error with a string message
+    pub fn error(msg: impl ToString) -> Self {
+        Self {
+            typ: None,
+            msg: msg.to_string(),
+            source: None,
+            backtrace: Some(format!("{:?}", Backtrace::new())),
+        }
+    }
+
     /// Convert some `Error` to AnyError.
     ///
     /// - If there is a `source()` in the input error, it is also converted to AnyError, recursively.

@@ -64,6 +64,18 @@ fn test_any_error() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[test]
+fn test_any_error_error() -> anyhow::Result<()> {
+    let ae = AnyError::error(123);
+
+    let want_str = "123";
+    assert_eq!(want_str, ae.to_string());
+    assert!(ae.source().is_none());
+    assert!(!ae.backtrace().unwrap().is_empty());
+
+    Ok(())
+}
+
 #[cfg(feature = "anyhow")]
 #[test]
 fn test_from_anyhow() -> anyhow::Result<()> {
