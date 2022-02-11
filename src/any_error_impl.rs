@@ -10,11 +10,24 @@ use serde::Serialize;
 ///
 /// It is can be used to convert other `Error` into a serializable Error for transmission,
 /// with most necessary info kept.
+///
+/// ```rust
+/// # use anyerror::AnyError;
+/// # use std::fmt;
+/// let e = AnyError::new(&fmt::Error{}).add_context(|| "example");
+/// assert_eq!("core::fmt::Error: an error occurred when formatting an argument while: example", e.to_string());
+/// ```
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 pub struct AnyError {
     typ: Option<String>,
+
     msg: String,
+
     source: Option<Box<AnyError>>,
+
+    /// context provides additional info about the context when a error happened.
+    context: Vec<String>,
+
     backtrace: Option<String>,
 }
 
@@ -28,6 +41,13 @@ impl Display for AnyError {
 
         if let Some(ref s) = self.source {
             write!(f, " source: {}", s)?;
+        }
+
+        for (i, ctx) in self.context.iter().enumerate() {
+            if i > 0 {
+                write!(f, ",")?;
+            }
+            write!(f, " while: {}", ctx)?;
         }
 
         Ok(())
@@ -68,6 +88,7 @@ impl AnyError {
             typ: None,
             msg: msg.to_string(),
             source: None,
+            context: vec![],
             backtrace: Some(format!("{:?}", Backtrace::new())),
         }
     }
@@ -112,10 +133,17 @@ impl AnyError {
                     typ,
                     msg: e.to_string(),
                     source,
+                    context: vec![],
                     backtrace: bt,
                 }
             }
         };
+    }
+
+    #[must_use]
+    pub fn add_context<D: Display, F: FnOnce() -> D>(mut self, ctx: F) -> Self {
+        self.context.push(format!("{}", ctx()));
+        self
     }
 
     pub fn get_type(&self) -> Option<&str> {

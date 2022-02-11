@@ -3,6 +3,7 @@ use std::fmt;
 
 use anyhow::Context;
 
+use crate::AddContext;
 use crate::AnyError;
 
 #[test]
@@ -72,6 +73,25 @@ fn test_any_error_error() -> anyhow::Result<()> {
     assert_eq!(want_str, ae.to_string());
     assert!(ae.source().is_none());
     assert!(!ae.backtrace().unwrap().is_empty());
+
+    Ok(())
+}
+
+#[test]
+fn test_any_error_context() -> anyhow::Result<()> {
+    let ae = AnyError::error(123).add_context(|| "foo");
+
+    let want_str = "123 while: foo";
+    assert_eq!(want_str, ae.to_string());
+
+    let res: Result<i32, AnyError> = Ok(3);
+    assert_eq!(Ok(3), res.add_context(|| "foo"));
+
+    let res: Result<i32, AnyError> = Err(ae);
+    assert_eq!(
+        "123 while: foo, while: bar",
+        res.add_context(|| "bar").unwrap_err().to_string()
+    );
 
     Ok(())
 }
