@@ -89,7 +89,7 @@ impl AnyError {
             msg: msg.to_string(),
             source: None,
             context: vec![],
-            backtrace: Some(format!("{:?}", Backtrace::new())),
+            backtrace: None,
         }
     }
 
@@ -114,18 +114,9 @@ impl AnyError {
         let x = e.downcast_ref::<AnyError>();
 
         return match x {
-            Some(ae) => {
-                let mut res = ae.clone();
-                if res.backtrace.is_none() {
-                    res.backtrace = Some(format!("{:?}", Backtrace::new()));
-                }
-                res
-            }
+            Some(ae) => ae.clone(),
             None => {
-                let bt = match e.backtrace() {
-                    Some(b) => Some(format!("{:?}", b)),
-                    None => Some(format!("{:?}", Backtrace::new())),
-                };
+                let bt = e.backtrace().map(|b| format!("{:?}", b));
 
                 let source = e.source().map(|x| Box::new(AnyError::from_dyn(x, None)));
 
@@ -138,6 +129,16 @@ impl AnyError {
                 }
             }
         };
+    }
+
+    #[must_use]
+    pub fn with_backtrace(mut self) -> Self {
+        if self.backtrace.is_some() {
+            return self;
+        }
+
+        self.backtrace = Some(format!("{:?}", Backtrace::new()));
+        self
     }
 
     #[must_use]

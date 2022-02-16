@@ -26,7 +26,7 @@ fn test_any_error() -> anyhow::Result<()> {
 
     let fmt_err = fmt::Error {};
 
-    let ae = AnyError::new(&fmt_err);
+    let ae = AnyError::new(&fmt_err).with_backtrace();
 
     let want_str = "core::fmt::Error: an error occurred when formatting an argument";
     assert_eq!(want_str, ae.to_string());
@@ -45,7 +45,7 @@ fn test_any_error() -> anyhow::Result<()> {
     let err1 = anyhow::anyhow!("err1");
     let err2 = Err::<(), anyhow::Error>(err1).context("err2");
 
-    let ae = AnyError::from_dyn(err2.unwrap_err().as_ref(), None);
+    let ae = AnyError::from_dyn(err2.unwrap_err().as_ref(), None).with_backtrace();
 
     assert_eq!("err2 source: err1", ae.to_string());
     let src = ae.source().unwrap();
@@ -72,7 +72,26 @@ fn test_any_error_error() -> anyhow::Result<()> {
     let want_str = "123";
     assert_eq!(want_str, ae.to_string());
     assert!(ae.source().is_none());
-    assert!(!ae.backtrace().unwrap().is_empty());
+    assert!(ae.backtrace().is_none());
+
+    Ok(())
+}
+
+#[test]
+fn test_any_error_backtrace() -> anyhow::Result<()> {
+    let ae = AnyError::error(123);
+
+    let want_str = "123";
+    assert_eq!(want_str, ae.to_string());
+    assert!(ae.source().is_none());
+    assert!(ae.backtrace().is_none());
+
+    let with_bt = ae.with_backtrace();
+    assert!(with_bt.backtrace().is_some());
+
+    let ae2 = AnyError::new(&with_bt);
+
+    assert!(ae2.backtrace().is_some());
 
     Ok(())
 }
