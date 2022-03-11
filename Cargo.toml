@@ -1,6 +1,6 @@
 [package]
 name = "anyerror"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 authors = [ "Zhang Yanpo <drdr.xp@gmail.com>" ]
 
@@ -14,9 +14,12 @@ repository = "https://github.com/drmingdrmer/anyerror"
 readme = "README.md"
 
 [dependencies]
-anyhow = { version = "1.0.32", optional = true }
-backtrace = "0.3.63"
 serde = { version="1", features=["derive"] }
+
+# Optional
+anyhow = { version = "1.0.32", optional = true }
+backtrace = { version = "0.3.63", optional = true }
+
 
 [dev-dependencies]
 anyhow = "1.0.32"
@@ -26,8 +29,6 @@ serde_json = "1.0.74"
 
 [features]
 default = []
-# anyhow = ["anyhow"]
-# anyhow = []
 # docinclude = [] # Used only for activating `doc(include="...")` on nightly.
 
 [package.metadata.docs.rs]

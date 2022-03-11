@@ -2,7 +2,6 @@ use std::error::Error;
 use std::fmt::Display;
 use std::fmt::Formatter;
 
-use backtrace::Backtrace;
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -77,7 +76,27 @@ impl std::error::Error for AnyError {
 #[cfg(feature = "anyhow")]
 impl From<anyhow::Error> for AnyError {
     fn from(a: anyhow::Error) -> Self {
-        AnyError::from_dyn(a.as_ref(), None)
+        // NOTE: this does not work: anyhow::Error does not impl std::Error;
+        //       backtrace is lost after converting it to &dyn Error with stable rust.
+        // AnyError::from_dyn(a.as_ref(), None)
+
+        let source = a.source().map(|x| Box::new(AnyError::from_dyn(x, None)));
+        #[cfg(feature = "backtrace")]
+        let bt = Some({
+            let bt = a.backtrace();
+            format!("{:?}", bt)
+        });
+
+        #[cfg(not(feature = "backtrace"))]
+        let bt = None;
+
+        Self {
+            typ: None,
+            msg: a.to_string(),
+            source,
+            context: vec![],
+            backtrace: bt,
+        }
     }
 }
 
@@ -116,7 +135,11 @@ impl AnyError {
         return match x {
             Some(ae) => ae.clone(),
             None => {
+                #[cfg(feature = "backtrace")]
                 let bt = e.backtrace().map(|b| format!("{:?}", b));
+
+                #[cfg(not(feature = "backtrace"))]
+                let bt = None;
 
                 let source = e.source().map(|x| Box::new(AnyError::from_dyn(x, None)));
 
@@ -131,13 +154,14 @@ impl AnyError {
         };
     }
 
+    #[cfg(feature = "backtrace")]
     #[must_use]
     pub fn with_backtrace(mut self) -> Self {
         if self.backtrace.is_some() {
             return self;
         }
 
-        self.backtrace = Some(format!("{:?}", Backtrace::new()));
+        self.backtrace = Some(crate::bt::new_str());
         self
     }
 

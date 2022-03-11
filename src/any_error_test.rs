@@ -26,31 +26,22 @@ fn test_any_error() -> anyhow::Result<()> {
 
     let fmt_err = fmt::Error {};
 
-    let ae = AnyError::new(&fmt_err).with_backtrace();
+    let ae = AnyError::new(&fmt_err);
 
     let want_str = "core::fmt::Error: an error occurred when formatting an argument";
     assert_eq!(want_str, ae.to_string());
     assert!(ae.source().is_none());
-    assert!(!ae.backtrace().unwrap().is_empty());
-
-    // debug output with backtrace
-
-    let debug_str = format!("{:?}", ae);
-
-    assert!(debug_str.starts_with(want_str));
-    assert!(debug_str.contains("test_any_error"));
 
     // chained errors
 
     let err1 = anyhow::anyhow!("err1");
     let err2 = Err::<(), anyhow::Error>(err1).context("err2");
 
-    let ae = AnyError::from_dyn(err2.unwrap_err().as_ref(), None).with_backtrace();
+    let ae = AnyError::from_dyn(err2.unwrap_err().as_ref(), None);
 
     assert_eq!("err2 source: err1", ae.to_string());
     let src = ae.source().unwrap();
     assert_eq!("err1", src.to_string());
-    assert!(!ae.backtrace().unwrap().is_empty());
 
     // build AnyError from AnyError
 
@@ -77,6 +68,7 @@ fn test_any_error_error() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[cfg(feature = "backtrace")]
 #[test]
 fn test_any_error_backtrace() -> anyhow::Result<()> {
     let ae = AnyError::error(123);
@@ -92,6 +84,42 @@ fn test_any_error_backtrace() -> anyhow::Result<()> {
     let ae2 = AnyError::new(&with_bt);
 
     assert!(ae2.backtrace().is_some());
+
+    // debug output with backtrace
+
+    let debug_str = format!("{:?}", with_bt);
+
+    assert!(debug_str.starts_with(want_str));
+    assert!(debug_str.contains("test_any_error_backtrace"));
+
+    Ok(())
+}
+
+#[cfg(not(feature = "backtrace"))]
+#[test]
+fn test_any_error_no_backtrace() -> anyhow::Result<()> {
+    // build from std Error
+
+    let fmt_err = fmt::Error {};
+
+    let ae = AnyError::new(&fmt_err);
+
+    let want_str = "core::fmt::Error: an error occurred when formatting an argument";
+    assert_eq!(want_str, ae.to_string());
+    assert!(ae.source().is_none());
+    assert!(ae.backtrace().is_none());
+
+    // chained errors
+
+    let err1 = anyhow::anyhow!("err1");
+    let err2 = Err::<(), anyhow::Error>(err1).context("err2");
+
+    let ae = AnyError::from_dyn(err2.unwrap_err().as_ref(), None);
+
+    assert_eq!("err2 source: err1", ae.to_string());
+    let src = ae.source().unwrap();
+    assert_eq!("err1", src.to_string());
+    assert!(ae.backtrace().is_none());
 
     Ok(())
 }
@@ -116,8 +144,26 @@ fn test_any_error_context() -> anyhow::Result<()> {
 }
 
 #[cfg(feature = "anyhow")]
+#[cfg(not(feature = "backtrace"))]
 #[test]
 fn test_from_anyhow() -> anyhow::Result<()> {
+    let err1 = anyhow::anyhow!("err1");
+    let err2 = Err::<(), anyhow::Error>(err1).context("err2");
+
+    let ae = AnyError::from(err2.unwrap_err());
+
+    assert_eq!("err2 source: err1", ae.to_string());
+    let src = ae.source().unwrap();
+    assert_eq!("err1", src.to_string());
+    assert!(ae.backtrace().is_none());
+
+    Ok(())
+}
+
+#[cfg(feature = "anyhow")]
+#[cfg(feature = "backtrace")]
+#[test]
+fn test_from_anyhow_with_backtrace() -> anyhow::Result<()> {
     let err1 = anyhow::anyhow!("err1");
     let err2 = Err::<(), anyhow::Error>(err1).context("err2");
 
