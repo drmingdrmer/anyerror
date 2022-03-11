@@ -3,6 +3,7 @@ use std::fmt;
 
 use anyhow::Context;
 
+use crate::backtrace_str;
 use crate::AddContext;
 use crate::AnyError;
 
@@ -174,5 +175,21 @@ fn test_from_anyhow_with_backtrace() -> anyhow::Result<()> {
     assert_eq!("err1", src.to_string());
     assert!(!ae.backtrace().unwrap().is_empty());
 
+    Ok(())
+}
+
+#[cfg(feature = "backtrace")]
+#[test]
+fn test_backtrace() -> anyhow::Result<()> {
+    let got = backtrace_str().expect("no none");
+    assert!(got.contains("test_backtrace"));
+    Ok(())
+}
+
+#[cfg(not(feature = "backtrace"))]
+#[test]
+fn test_backtrace() -> anyhow::Result<()> {
+    let got = backtrace_str();
+    assert!(got.is_none());
     Ok(())
 }

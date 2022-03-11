@@ -179,3 +179,13 @@ impl AnyError {
         self.backtrace.as_ref().map(|x| x as _)
     }
 }
+
+/// Generate backtrace in string if feature `backtrace` is enabled.
+/// Otherwise it returns None.
+pub fn backtrace_str() -> Option<String> {
+    #[cfg(feature = "backtrace")]
+    return Some(crate::bt::new_str());
+
+    #[cfg(not(feature = "backtrace"))]
+    return None;
+}
