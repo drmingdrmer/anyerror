@@ -5,6 +5,7 @@ test: lint fmt
 	cargo test --features anyhow
 	cargo test --features backtrace
 	cargo test --features backtrace,anyhow
+	cargo +stable test --features anyhow
 
 fmt:
 	cargo fmt

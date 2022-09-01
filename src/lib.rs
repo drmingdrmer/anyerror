@@ -1,4 +1,5 @@
-#![cfg_attr(feature = "backtrace", feature(backtrace))]
+#![cfg_attr(feature = "backtrace", feature(error_generic_member_access))]
+#![cfg_attr(feature = "backtrace", feature(provide_any))]
 
 mod any_error_impl;
 #[cfg(feature = "backtrace")]

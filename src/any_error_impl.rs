@@ -136,7 +136,7 @@ impl AnyError {
             Some(ae) => ae.clone(),
             None => {
                 #[cfg(feature = "backtrace")]
-                let bt = e.backtrace().map(|b| format!("{:?}", b));
+                let bt = crate::bt::error_backtrace_str(e);
 
                 #[cfg(not(feature = "backtrace"))]
                 let bt = None;

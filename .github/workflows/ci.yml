@@ -1,8 +1,8 @@
 on: [push, pull_request]
 name: ci
 jobs:
-  ut:
-    name: unittest
+  ut-nightly:
+    name: unittest with nightly rust
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -11,9 +11,6 @@ jobs:
           - "anyhow"
           - "backtrace"
           - "anyhow,backtrace"
-        toolchain:
-          - "stable"
-          - "nightly"
 
     steps:
       - name: Setup | Checkout
@@ -22,20 +19,52 @@ jobs:
       - name: Setup | Toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: "${{ matrix.toolchain }}"
+          toolchain: "nightly"
           override: true
           components: rustfmt, clippy
 
-      - name: Unit Tests, with and without defensive store
+      - name: Unit Tests | nightly
         uses: actions-rs/cargo@v1
         with:
           command: test
           args: --features "${{ matrix.test_feature }}"
         env:
-          # To let stable rust use unstable features:
-          # Thanks to @schreter
-          # https://github.com/datafuselabs/openraft/issues/241#issuecomment-1060416327
-          RUSTC_BOOTSTRAP: 1
+          RUST_LOG: debug
+          RUST_BACKTRACE: full
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          path: |
+            _log/
+
+  ut-stable:
+    name: unittest with stable rust
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test_feature:
+          - ""
+          - "anyhow"
+
+    steps:
+      - name: Setup | Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup | Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: "stable"
+          override: true
+          components: rustfmt, clippy
+
+      - name: Unit Tests | stable
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --features "${{ matrix.test_feature }}"
+        env:
           RUST_LOG: debug
           RUST_BACKTRACE: full
 
