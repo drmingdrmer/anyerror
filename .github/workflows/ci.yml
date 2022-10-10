@@ -109,4 +109,4 @@ jobs:
         uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-targets -- -D warnings -A clippy::bool-assert-comparison
+          args: --all-targets -- -D warnings

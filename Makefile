@@ -12,7 +12,8 @@ fmt:
 
 lint:
 	cargo fmt
-	cargo clippy --all-targets -- -D warnings -A clippy::bool-assert-comparison
+	cargo clippy --all-targets -- -D warnings
+	RUSTFLAGS=-Wunused-crate-dependencies cargo clippy --lib -- -D warnings
 
 clean:
 	cargo clean
