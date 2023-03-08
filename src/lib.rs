@@ -6,6 +6,7 @@ mod any_error_impl;
 #[cfg(feature = "backtrace")]
 mod bt;
 mod context;
+mod macros;
 
 #[cfg(test)]
 mod any_error_test;
