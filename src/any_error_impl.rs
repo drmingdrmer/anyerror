@@ -100,6 +100,14 @@ impl From<anyhow::Error> for AnyError {
     }
 }
 
+impl<E> From<&E> for AnyError
+where E: std::error::Error + 'static
+{
+    fn from(e: &E) -> Self {
+        AnyError::new(e)
+    }
+}
+
 impl AnyError {
     /// Create an ad-hoc error with a string message
     pub fn error(msg: impl ToString) -> Self {

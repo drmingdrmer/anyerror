@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::fmt;
+use std::io::ErrorKind;
 
 use anyhow::Context;
 
@@ -62,6 +63,19 @@ fn test_any_error_error() -> anyhow::Result<()> {
     let ae = AnyError::error(123);
 
     let want_str = "123";
+    assert_eq!(want_str, ae.to_string());
+    assert!(ae.source().is_none());
+    assert!(ae.backtrace().is_none());
+
+    Ok(())
+}
+
+#[test]
+fn test_any_error_from_error_ref() -> anyhow::Result<()> {
+    let io_err = std::io::Error::new(ErrorKind::AddrInUse, "foo");
+    let ae = AnyError::from(&io_err);
+
+    let want_str = r#"std::io::error::Error: foo"#;
     assert_eq!(want_str, ae.to_string());
     assert!(ae.source().is_none());
     assert!(ae.backtrace().is_none());
