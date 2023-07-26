@@ -18,6 +18,7 @@ serde = { version="1", features=["derive"] }
 
 # Optional
 anyhow = { version = "1.0.32", optional = true }
+rkyv = { version = "0.7.42", features = ["validation"], optional = true }
 
 
 [dev-dependencies]

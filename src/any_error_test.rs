@@ -50,10 +50,21 @@ fn test_any_error() -> anyhow::Result<()> {
     let ae2 = AnyError::new(&ae);
     assert_eq!("err2 source: err1", ae.to_string());
 
+    // test serde (de)serialization
     let ser = serde_json::to_string(&ae2)?;
     let de: AnyError = serde_json::from_str(&ser)?;
-
     assert_eq!("err2 source: err1", de.to_string());
+
+    // test rkyv (de)serialization
+    #[cfg(feature = "rkyv")]
+    {
+        use rkyv::Deserialize;
+
+        let ser = rkyv::to_bytes::<_, 256>(&ae2)?;
+        let archived = rkyv::check_archived_root::<AnyError>(&ser[..]).expect("rkyv deserialization failed");
+        let de: AnyError = archived.deserialize(&mut rkyv::Infallible)?;
+        assert_eq!(de, ae2);
+    }
 
     Ok(())
 }
