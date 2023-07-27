@@ -10,6 +10,7 @@ jobs:
           - ""
           - "anyhow"
           - "backtrace"
+          - "rkyv"
           - "anyhow,backtrace"
 
     steps:
