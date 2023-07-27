@@ -17,11 +17,23 @@ use serde::Serialize;
 /// assert_eq!("core::fmt::Error: an error occurred when formatting an argument while: example", e.to_string());
 /// ```
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(
+        check_bytes,
+        bound(serialize = "__S: rkyv::ser::ScratchSpace + rkyv::ser::Serializer")
+    ),
+    archive_attr(check_bytes(
+        bound = "__C: rkyv::validation::ArchiveContext, <__C as rkyv::Fallible>::Error: std::error::Error"
+    ),)
+)]
 pub struct AnyError {
     typ: Option<String>,
 
     msg: String,
 
+    #[cfg_attr(feature = "rkyv", omit_bounds, archive_attr(omit_bounds))]
     source: Option<Box<AnyError>>,
 
     /// context provides additional info about the context when a error happened.
