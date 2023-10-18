@@ -1,4 +1,5 @@
 use std::backtrace::Backtrace;
+use std::error::request_ref;
 use std::error::Error;
 
 /// Create a new backtrace instance.
@@ -12,7 +13,7 @@ pub fn new_str() -> String {
 }
 
 pub fn error_backtrace_ref<'err>(e: &'err (dyn Error + 'static)) -> Option<&'err Backtrace> {
-    e.request_ref::<Backtrace>()
+    request_ref::<Backtrace>(e)
 }
 
 pub fn error_backtrace_str(e: &(dyn Error + 'static)) -> Option<String> {

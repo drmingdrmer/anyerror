@@ -1,5 +1,4 @@
 #![cfg_attr(feature = "backtrace", feature(error_generic_member_access))]
-#![cfg_attr(feature = "backtrace", feature(provide_any))]
 #![allow(clippy::bool_assert_comparison, clippy::type_complexity)]
 
 mod any_error_impl;
