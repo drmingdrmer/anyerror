@@ -182,6 +182,35 @@ fn test_any_error_context_and_source() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[test]
+fn test_any_error_output() -> anyhow::Result<()> {
+    let err1 = fmt::Error {};
+    let ae1 = AnyError::new(&err1).add_context(|| "err1_context1").add_context(|| "err1_context2");
+
+    let err2 = Err::<(), anyhow::Error>(ae1.into()).context("err2");
+    let ae = AnyError::from_dyn(err2.unwrap_err().as_ref(), None)
+        .add_context(|| "context_2")
+        .add_context(|| "context_3");
+
+    let want_str = concat!(
+        "err2 while: context_2, while: context_3;",
+        " source: core::fmt::Error: an error occurred when formatting an argument",
+        " while: err1_context1, while: err1_context2"
+    );
+    assert_eq!(want_str, ae.to_string());
+
+    let want_alternative_str = indoc::indoc! {r#"
+        err2
+            while: context_2
+            while: context_3
+        source: core::fmt::Error: an error occurred when formatting an argument
+            while: err1_context1
+            while: err1_context2"#};
+    assert_eq!(want_alternative_str, format!("{:#}", ae));
+
+    Ok(())
+}
+
 #[cfg(feature = "anyhow")]
 #[cfg(not(feature = "backtrace"))]
 #[test]

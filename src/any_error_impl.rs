@@ -10,11 +10,15 @@ use serde::Serialize;
 /// It is can be used to convert other `Error` into a serializable Error for transmission,
 /// with most necessary info kept.
 ///
-/// ```rust
-/// # use anyerror::AnyError;
+/// ```
 /// # use std::fmt;
-/// let e = AnyError::new(&fmt::Error{}).add_context(|| "example");
-/// assert_eq!("core::fmt::Error: an error occurred when formatting an argument while: example", e.to_string());
+/// # use anyerror::AnyError;
+/// let err = fmt::Error {};
+/// let e = AnyError::new(&err).add_context(|| "running test");
+/// assert_eq!(
+///     "core::fmt::Error: an error occurred when formatting an argument while: running test",
+///     e.to_string()
+/// );
 /// ```
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 #[cfg_attr(
@@ -51,14 +55,28 @@ impl Display for AnyError {
         write!(f, "{}", self.msg)?;
 
         for (i, ctx) in self.context.iter().enumerate() {
-            if i > 0 {
-                write!(f, ",")?;
+            if f.alternate() {
+                writeln!(f)?;
+                write!(f, "    while: {}", ctx)?;
+            } else {
+                if i > 0 {
+                    write!(f, ",")?;
+                }
+                write!(f, " while: {}", ctx)?;
             }
-            write!(f, " while: {}", ctx)?;
         }
 
-        if let Some(ref s) = self.source {
-            write!(f, "; source: {}", s)?;
+        #[allow(clippy::collapsible_else_if)]
+        if f.alternate() {
+            if let Some(ref s) = self.source {
+                writeln!(f)?;
+                write!(f, "source: ")?;
+                write!(f, "{:#}", s)?;
+            }
+        } else {
+            if let Some(ref s) = self.source {
+                write!(f, "; source: {}", s)?;
+            }
         }
 
         Ok(())

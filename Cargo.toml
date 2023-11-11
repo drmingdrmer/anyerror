@@ -23,6 +23,7 @@ rkyv = { version = "0.7.42", features = ["validation"], optional = true }
 
 [dev-dependencies]
 anyhow = "1.0.32"
+indoc = { version = "2.0.4" }
 serde_json = "1.0.74"
 tokio = { version = "1.26.0", features = ["rt", "macros"] }
 
