@@ -41,19 +41,19 @@ fn test_any_error() -> anyhow::Result<()> {
 
     let ae = AnyError::from_dyn(err2.unwrap_err().as_ref(), None);
 
-    assert_eq!("err2 source: err1", ae.to_string());
+    assert_eq!("err2; source: err1", ae.to_string());
     let src = ae.source().unwrap();
     assert_eq!("err1", src.to_string());
 
     // build AnyError from AnyError
 
     let ae2 = AnyError::new(&ae);
-    assert_eq!("err2 source: err1", ae.to_string());
+    assert_eq!("err2; source: err1", ae.to_string());
 
     // test serde (de)serialization
     let ser = serde_json::to_string(&ae2)?;
     let de: AnyError = serde_json::from_str(&ser)?;
-    assert_eq!("err2 source: err1", de.to_string());
+    assert_eq!("err2; source: err1", de.to_string());
 
     // test rkyv (de)serialization
     #[cfg(feature = "rkyv")]
@@ -142,7 +142,7 @@ fn test_any_error_no_backtrace() -> anyhow::Result<()> {
 
     let ae = AnyError::from_dyn(err2.unwrap_err().as_ref(), None);
 
-    assert_eq!("err2 source: err1", ae.to_string());
+    assert_eq!("err2; source: err1", ae.to_string());
     let src = ae.source().unwrap();
     assert_eq!("err1", src.to_string());
     assert!(ae.backtrace().is_none());
@@ -169,6 +169,19 @@ fn test_any_error_context() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[test]
+fn test_any_error_context_and_source() -> anyhow::Result<()> {
+    let err1 = anyhow::anyhow!("err1");
+    let err2 = Err::<(), anyhow::Error>(err1).context("err2");
+
+    let ae = AnyError::from_dyn(err2.unwrap_err().as_ref(), None).add_context(|| "context_2");
+
+    let want_str = "err2 while: context_2; source: err1";
+    assert_eq!(want_str, ae.to_string());
+
+    Ok(())
+}
+
 #[cfg(feature = "anyhow")]
 #[cfg(not(feature = "backtrace"))]
 #[test]
@@ -178,7 +191,7 @@ fn test_from_anyhow() -> anyhow::Result<()> {
 
     let ae = AnyError::from(err2.unwrap_err());
 
-    assert_eq!("err2 source: err1", ae.to_string());
+    assert_eq!("err2; source: err1", ae.to_string());
     let src = ae.source().unwrap();
     assert_eq!("err1", src.to_string());
     assert!(ae.backtrace().is_none());
@@ -195,7 +208,7 @@ fn test_from_anyhow_with_backtrace() -> anyhow::Result<()> {
 
     let ae = AnyError::from(err2.unwrap_err());
 
-    assert_eq!("err2 source: err1", ae.to_string());
+    assert_eq!("err2; source: err1", ae.to_string());
     let src = ae.source().unwrap();
     assert_eq!("err1", src.to_string());
     assert!(!ae.backtrace().unwrap().is_empty());

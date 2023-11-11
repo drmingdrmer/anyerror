@@ -50,15 +50,15 @@ impl Display for AnyError {
 
         write!(f, "{}", self.msg)?;
 
-        if let Some(ref s) = self.source {
-            write!(f, " source: {}", s)?;
-        }
-
         for (i, ctx) in self.context.iter().enumerate() {
             if i > 0 {
                 write!(f, ",")?;
             }
             write!(f, " while: {}", ctx)?;
+        }
+
+        if let Some(ref s) = self.source {
+            write!(f, "; source: {}", s)?;
         }
 
         Ok(())

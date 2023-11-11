@@ -77,7 +77,6 @@ mod tests {
 
         let p = foo().await;
         assert_eq!("anyerror::macros::tests::test_func_path::foo", p);
-        // let x = func_name!();
     }
 
     #[tokio::test]
