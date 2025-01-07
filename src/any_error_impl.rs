@@ -170,7 +170,7 @@ impl AnyError {
     pub fn from_dyn(e: &(dyn Error + 'static), typ: Option<String>) -> Self {
         let x = e.downcast_ref::<AnyError>();
 
-        return match x {
+        match x {
             Some(ae) => ae.clone(),
             None => {
                 #[cfg(feature = "backtrace")]
@@ -189,7 +189,7 @@ impl AnyError {
                     backtrace: bt,
                 }
             }
-        };
+        }
     }
 
     #[cfg(feature = "backtrace")]
@@ -209,6 +209,13 @@ impl AnyError {
         self
     }
 
+    /// Update the type of the error.
+    pub fn with_type<T: ToString>(mut self, typ: Option<T>) -> Self {
+        self.typ = typ.map(|x| x.to_string());
+        self
+    }
+
+    /// Return the type of the error.
     pub fn get_type(&self) -> Option<&str> {
         self.typ.as_ref().map(|x| x as _)
     }

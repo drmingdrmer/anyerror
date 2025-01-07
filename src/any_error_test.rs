@@ -70,6 +70,28 @@ fn test_any_error() -> anyhow::Result<()> {
 }
 
 #[test]
+fn test_any_error_set_type() -> anyhow::Result<()> {
+    // build from std Error
+
+    let fmt_err = fmt::Error {};
+
+    let ae = AnyError::new(&fmt_err);
+
+    let want_str = "core::fmt::Error: an error occurred when formatting an argument";
+    assert_eq!(want_str, ae.to_string());
+
+    let ae = ae.with_type(None::<String>);
+    let want_str = "an error occurred when formatting an argument";
+    assert_eq!(want_str, ae.to_string());
+
+    let ae = ae.with_type(Some("Foo"));
+    let want_str = "Foo: an error occurred when formatting an argument";
+    assert_eq!(want_str, ae.to_string());
+
+    Ok(())
+}
+
+#[test]
 fn test_any_error_error() -> anyhow::Result<()> {
     let ae = AnyError::error(123);
 
